@@ -10,7 +10,7 @@ $rekognition = new RekognitionClient([
     'region' => 'us-east-2'
 ]);
 
-$files = array_diff(scandir($path_data), array('.', '..'));
+$files = array_diff(scandir($path_data), array('.', '..', '.gitkeep'));
 
 if (!file_exists($path_results) || !is_dir($path_results)) {
     mkdir($path_results, 0777, true);
@@ -39,6 +39,7 @@ foreach ($files as $file) {
         'filename' => $file,
         'fullpath' => $fullpath,
         'sha1' => $filehash,
+        'md5' => md5_file($fullpath),
         'processed' => gmdate("Y-m-d\TH:i:s\Z"),
         'size' => getimagesize($fullpath),
         'text' => $result['TextDetections'],
