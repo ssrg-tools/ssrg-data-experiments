@@ -1,5 +1,7 @@
 {
     "require": {
-        "aws/aws-sdk-php": "^3.147"
+        "aws/aws-sdk-php": "^3.147",
+        "tuupola/base62": "^2.0",
+        "robmorgan/phinx": "^0.12.3"
     }
 }
