@@ -2,6 +2,7 @@
     "require": {
         "aws/aws-sdk-php": "^3.147",
         "tuupola/base62": "^2.0",
-        "robmorgan/phinx": "^0.12.3"
+        "robmorgan/phinx": "^0.12.3",
+        "aura/sql": "^3.0"
     }
 }

@@ -1,7 +1,11 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
-define('DS', DIRECTORY_SEPARATOR);
+use Tuupola\Base62Proxy as Base62;
+
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
 
 define('TYPE_GAME_LOADING', 'game-loading');
 define('TYPE_GAME_START', 'game-start');
@@ -250,4 +254,38 @@ function pipe(callable $first_fn, callable $second_fn)
         $first_result = $first_fn(...$args_first);
         return $second_fn($first_result);
     };
+}
+
+// @credits https://github.com/google/guava/issues/2834
+function doubleToSortableLong(float $value)
+{
+    // Gymnastics to convert a float/double to a sortable long long
+    $bits = unpack('J', pack('E', $value))[1];
+    return $bits ^ (($bits >> (PHP_INT_SIZE * 8 - 1)) & PHP_INT_MAX);
+}
+
+/**
+ * Generates a 128-bit / 16-byte random GUID. Under most circumstances
+ * it has around 7 to 10 bytes of entropy over a medium timeframe.
+ *
+ * 8 bytes to encode the time of generation
+ * 1 byte to encode machine identifier
+ * 7 bytes of random generated numbers
+ *
+ * Note: GUIDs will create the $microtime input or the time it was called.
+ */
+function guid_generate(string $dbname = null, string $dbhost = null, float $microtime = null)
+{
+    if (!$microtime) {
+        $microtime = \microtime(true);
+    }
+
+    $part_server_name = getHostName() ?: 'this machine';
+    $machine_identifier = sprintf('%s-%s-%s', $part_server_name, $dbhost, $dbname);
+
+    $wanted_length = 16;
+    $part_time = pack('J', doubleToSortableLong($microtime));                 // 8 bytes
+    $part_machine = substr(hash('fnv132', $machine_identifier, true), 0, 1);  // 1 byte
+    $part_random = \random_bytes($wanted_length - strlen($part_time . $part_machine));
+    return Base62::encode($part_time . $part_machine . $part_random);
 }
