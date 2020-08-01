@@ -38,6 +38,7 @@ foreach ($files as $file) {
     $data = [
         'filename' => $file,
         'fullpath' => $fullpath,
+        'guid' => guid_generate(),
         'sha1' => $filehash,
         'md5' => md5_file($fullpath),
         'processed' => gmdate("Y-m-d\TH:i:s\Z"),
