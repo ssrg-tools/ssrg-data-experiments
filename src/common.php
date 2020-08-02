@@ -115,8 +115,20 @@ $screens = [
     ] + $default_screen,
 ];
 
+define('DIFFICULTY_EASY', 4);
+define('DIFFICULTY_NORMAL', 7);
+define('DIFFICULTY_HARD', 13);
+
+$difficulty_map = [
+    DIFFICULTY_EASY => 'Easy',
+    DIFFICULTY_NORMAL => 'Normal',
+    DIFFICULTY_HARD => 'Hard',
+];
+
 $path_data = dirname(__DIR__) . '/input';
 $path_tmp = dirname(__DIR__) . '/tmp';
+$path_beatmaps = dirname(__DIR__) . '/data/beatmaps';
+$path_beatmap_images = dirname(__DIR__) . '/data/beatmap-images';
 $path_results = $path_tmp . DS . 'results';
 
 function infer_screen(array $results) {

@@ -2,3 +2,6 @@
 /tmp/
 /vendor/
 /config/config.php
+/data/beatmaps/
+/data/beatmap-images/
+/log.txt
