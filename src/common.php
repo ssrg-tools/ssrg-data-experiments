@@ -125,6 +125,7 @@ $difficulty_map = [
     DIFFICULTY_HARD => 'Hard',
 ];
 
+$config_file = dirname(__DIR__) . '/config/config.php';
 $path_data = dirname(__DIR__) . '/input';
 $path_tmp = dirname(__DIR__) . '/tmp';
 $path_beatmaps = dirname(__DIR__) . '/data/beatmaps';

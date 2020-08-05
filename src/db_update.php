@@ -7,8 +7,6 @@ require_once __DIR__ . '/common.php';
 
 use Aura\Sql\ExtendedPdo;
 
-$config_file = dirname(__DIR__) . '/config/config.php';
-
 if (!file_exists($config_file)) {
     echo 'Please create a config file.';
     exit(1);
