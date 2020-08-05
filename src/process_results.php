@@ -14,8 +14,13 @@ usort($result_files, function ($a, $b) {
     return strcmp($a['filename'], $b['filename']);
 });
 
+$screen_results = [];
+
 foreach ($result_files as $result) {
     $screen = infer_screen($result['text']);
     echo sprintf('%s: %s', $result['filename'], $screen['type']) . PHP_EOL;
+    $screen_results[] = $screen;
 }
+
+$song_clears = [];
 

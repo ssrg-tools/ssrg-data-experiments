@@ -41,7 +41,9 @@ foreach ($files as $file) {
         'guid' => guid_generate(),
         'sha1' => $filehash,
         'md5' => md5_file($fullpath),
-        'processed' => gmdate("Y-m-d\TH:i:s\Z"),
+        'processed' => date("Y-m-d H:i:sP"),
+        'inserted' => false,
+        'song_clear_guid' => null,
         'size' => getimagesize($fullpath),
         'text' => $result['TextDetections'],
     ];
