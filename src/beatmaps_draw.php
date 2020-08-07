@@ -3,6 +3,9 @@ require_once __DIR__ . '/common.php';
 
 use Imagine\Image\Box;
 use Imagine\Image\Point;
+use SVG\SVG;
+use SVG\Nodes\Shapes\SVGCircle;
+use SVG\Nodes\Shapes\SVGLine;
 
 if (!file_exists($path_beatmap_images)) {
     mkdir($path_beatmap_images, 0777, true);
@@ -13,25 +16,25 @@ natsort($beatmap_files);
 
 // $beatmap_files = array_slice($beatmap_files, 0, 9);
 
-$imagine = new Imagine\Imagick\Imagine();
-
 $scale_overall = 1.0;
 $scale_vertical = 1.0 * $scale_overall;
 $scale_horizontal = 1.0 * $scale_overall;
 $scale_subbeat = 1.0 * $scale_overall;
 
-$size_row = 40 * $scale_overall;
+$size_row = 300 * $scale_overall;
 $size_beat = 15 * $scale_overall;
-$size_sub_beat = 15 * $scale_overall;
+$size_sub_beat = 300 * $scale_overall;
 $size_slider_line = 6 * $scale_overall;
+$size_factor_slider = 0.7;
 
 $color_tap = '59e';
 $color_slider = 'ed8';
 $color_slider_slide = 'dc7';
 
-$image_width = 200 * $scale_horizontal;
-$margin_side = 25 * $scale_horizontal;
+$image_width = 300 * $scale_horizontal;
+$margin_side = 50 * $scale_horizontal;
 $margin_top = 50 * $scale_vertical;
+$margin_bottom = 50 * $scale_vertical;
 $beat_x_start = $margin_side;
 $beat_x_end   = $image_width - $margin_side;
 $beat_x_width = $beat_x_end - $beat_x_start;
@@ -65,8 +68,9 @@ foreach ($beatmap_files as $beatmap_file) {
     $min_vertical_offset = min(...$used_vertical_offsets);
     $max_vertical_offset = max(...$used_vertical_offsets);
 
-    $image_height = $size_row * $beatmap_last_row_id * $scale_vertical + $margin_top;
-    $image = $imagine->create(new Box($image_width, $image_height));
+    $image_height = $size_row * $beatmap_last_row_id * $scale_vertical + $margin_top + $margin_bottom;
+    $image = new SVG($image_width, $image_height);
+    $doc = $image->getDocument();
 
     // Vars to draw sliders
     $last_row_id = null;
@@ -80,18 +84,23 @@ foreach ($beatmap_files as $beatmap_file) {
         }
 
         foreach ($row as $boat_id => $beat) {
-            $beat_offset_y = $image_height - $row_id * $size_row * $scale_vertical + $size_sub_beat * $scale_subbeat * ($beat['vertical_offset'] + 1) * $scale_vertical / $max_vertical_offset;
+            $beat_offset_y = $margin_top + $row_id * $size_row * $scale_vertical + -1 * $size_sub_beat * $scale_subbeat * $beat['vertical_offset'] * $scale_vertical / $max_vertical_offset;
             $beat_offset_x = $beat_x_start
-                + $beat_x_width * $scale_horizontal * ($beat['column_index'] + 1) / $max_column_index;
+                + $beat_x_width * $scale_horizontal * $beat['column_index'] / $max_column_index;
 
-            if ($beat['beat_type'] !== 0 && $last_beat_type !== 0 && $last_x && $last_y) {
-                $image->draw()
-                    ->line(new Point($last_x, $last_y), new Point($beat_offset_x, $beat_offset_y), $image->palette()->color($color_slider_slide), $size_slider_line);
+            if ($beat['beat_type'] !== 0 && $beat['beat_type'] !== 0x0B && $last_beat_type !== 0 && $last_x && $last_y) {
+                $doc->addChild(
+                    (new SVGLine($last_x, $last_y, $beat_offset_x, $beat_offset_y))
+                        ->setStyle('stroke', '#' . $color_slider_slide)
+                        ->setStyle('stroke-width', $size_slider_line . 'px')
+                );
             }
 
             $color = $beat['beat_type'] === 0 ? $color_tap : $color_slider;
-            $image->draw()
-                ->ellipse(new Point($beat_offset_x, $beat_offset_y), new Box($size_beat, $size_beat), $image->palette()->color($color), true);
+            $doc->addChild(
+                (new SVGCircle($beat_offset_x, $beat_offset_y, $size_beat))
+                    ->setStyle('fill', '#' . $color)
+            );
 
             $last_x = $beat_offset_x;
             $last_y = $beat_offset_y;
@@ -103,13 +112,16 @@ foreach ($beatmap_files as $beatmap_file) {
 
     }
 
-    $image->save(sprintf(
-        '%s%s%s - %s.png',
+    $filename = sprintf(
+        '%s%s%s - %s - %s.svg',
         $path_beatmap_images,
         DS,
         basename($songdata['dalcom_beatmap_filename'], '.json'),
+        $songdata['dalcom_song_filename'],
         $songdata['difficulty']
-    ));
+    );
+    file_put_contents($filename, $image);
+    echo sprintf('Wrote "%s"', $filename) . PHP_EOL;
 }
 
 echo 'Done.' . PHP_EOL;
