@@ -26,17 +26,17 @@ $column_indexes = [
     0x37 => [ 'name' => '37', 'render' => 'x55', 'value' => 0x37, ],
 ];
 
-$beat_types2 = [
+$beat_types = [
     0x00 => [ 'name' => 'Tap', 'render' => 'X', ],
-    0x0B => [ 'name' => 'Slide Start', 'render' => '<', ],
-    0x0C => [ 'name' => 'Slide End', 'render' => '>', ],
-    0x15 => [ 'name' => '15', 'render' => '#', ],
-    0x16 => [ 'name' => '16', 'render' => '?', ],
-    0xE8 => [ 'name' => 'E8', 'render' => '%', ],
-    0xE9 => [ 'name' => 'E9', 'render' => '&', ],
+    0x0B => [ 'name' => 'Slide #01 Start', 'render' => '<', ],
+    0x0C => [ 'name' => 'Slide #01 Continue', 'render' => '>', ],
+    0x15 => [ 'name' => 'Slide #02 Start', 'render' => '#', ],
+    0x16 => [ 'name' => 'Slide #02 Continue', 'render' => '?', ],
+    0xE8 => [ 'name' => 'Slide #03 Start', 'render' => '%', ],
+    0xE9 => [ 'name' => 'Slide #03 Continue', 'render' => '&', ],
 ];
 
-$beat_types3 = [ // right before the (next) counter
+$vertical_offsets = [ // right before the (next) counter
     0x00 => [ 'name' => '00', 'render' => '- --', ],
     0x10 => [ 'name' => '10', 'render' => 'X 10', ],
     0x80 => [ 'name' => '80', 'render' => 'X 80', ],

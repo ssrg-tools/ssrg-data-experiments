@@ -99,10 +99,10 @@ foreach ($beatmap_files as $beatmap_file) {
         if (!isset($column_indexes[$column_index])) {
             echo sprintf('Please add %s / 0x%02.s / 0b%s to column_index.', $column_index, dechex($column_index), decbin($column_index)) . PHP_EOL;
         }
-        if (!isset($beat_types2[$beat_type])) {
+        if (!isset($beat_types[$beat_type])) {
             echo sprintf('Please add %s / 0x%02.s / 0b%s to beat_type.', $beat_type, dechex($beat_type), decbin($beat_type)) . PHP_EOL;
         }
-        if (!isset($beat_types3[$vertical_offset])) {
+        if (!isset($vertical_offsets[$vertical_offset])) {
             $missing_vertical_offset[] = $vertical_offset;
             $current_offset = $current_offset + $line_length;
             continue;
@@ -117,7 +117,7 @@ foreach ($beatmap_files as $beatmap_file) {
                 $vertical_offset,
                 $column_indexes[$column_index]['render'],
                 decbin2($column_index),
-                $beat_types2[$beat_type]['render'],
+                $beat_types[$beat_type]['render'],
                 decbin2($beat_type)
             );
             echo PHP_EOL;

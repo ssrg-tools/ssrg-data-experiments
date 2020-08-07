@@ -15,6 +15,9 @@ $beatmap_files = array_diff(scandir($path_beatmaps), array('.', '..'));
 natsort($beatmap_files);
 
 // $beatmap_files = array_slice($beatmap_files, 0, 9);
+// $beatmap_files = [ '8004_13.seq.json' ];
+
+$verbose = true;
 
 $scale_overall = 1.0;
 $scale_vertical = 1.0 * $scale_overall;
@@ -31,8 +34,8 @@ $color_tap = '59e';
 $color_slider = 'ed8';
 $color_slider_slide = 'dc7';
 
-$image_width = 300 * $scale_horizontal;
-$margin_side = 50 * $scale_horizontal;
+$image_width = 400 * $scale_horizontal;
+$margin_side = 100 * $scale_horizontal;
 $margin_top = 50 * $scale_vertical;
 $margin_bottom = 50 * $scale_vertical;
 $beat_x_start = $margin_side;
@@ -101,6 +104,27 @@ foreach ($beatmap_files as $beatmap_file) {
                 (new SVGCircle($beat_offset_x, $beat_offset_y, $size_beat))
                     ->setStyle('fill', '#' . $color)
             );
+
+            if ($verbose) {
+                $font = new \SVG\Nodes\Structures\SVGFont('openGost', dirname($path_beatmaps) . '/RobotoMono-Regular.ttf');
+                $doc->addChild($font);
+                $doc->addChild(
+                    (new \SVG\Nodes\Texts\SVGText(
+                        sprintf(
+                            '[#%02d-%03d] 0x%02s',
+                            $row_id,
+                            $beat['note_id'],
+                            strtoupper(dechex($beat['beat_type']))
+                        ),
+                        $beat_offset_x + 15,
+                        $beat_offset_y + 30
+                    ))
+                    ->setFont($font)
+                    ->setSize(12)
+                    ->setStyle('stroke', '#333')
+                    ->setStyle('stroke-width', 1)
+                );
+            }
 
             $last_x = $beat_offset_x;
             $last_y = $beat_offset_y;
