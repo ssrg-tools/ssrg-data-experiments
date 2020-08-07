@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/common.php';
+require_once __DIR__ . '/beatmaps_common.php';
 
 use Imagine\Image\Box;
 use Imagine\Image\Point;
@@ -14,10 +15,7 @@ if (!file_exists($path_beatmap_images)) {
 $beatmap_files = array_diff(scandir($path_beatmaps), array('.', '..'));
 natsort($beatmap_files);
 
-// $beatmap_files = array_slice($beatmap_files, 0, 9);
-// $beatmap_files = [ '8004_13.seq.json' ];
-
-$verbose = true;
+$verbose = false;
 
 $scale_overall = 1.0;
 $scale_vertical = 1.0 * $scale_overall;
@@ -74,6 +72,8 @@ foreach ($beatmap_files as $beatmap_file) {
     $image_height = $size_row * $beatmap_last_row_id * $scale_vertical + $margin_top + $margin_bottom;
     $image = new SVG($image_width, $image_height);
     $doc = $image->getDocument();
+    $font = new \SVG\Nodes\Structures\SVGFont('openGost', dirname($path_beatmaps) . '/RobotoMono-Regular.ttf');
+    $doc->addChild($font);
 
     // Vars to draw sliders
     $last_row_id = null;
@@ -81,33 +81,50 @@ foreach ($beatmap_files as $beatmap_file) {
     $last_x = null;
     $last_y = null;
 
-    foreach (array_reverse($beatmap) as $row_id => $row) {
+    $lines = [];
+    $notes = [];
+    $last_slider_by_group = [];
+    // Analyze the notes first
+    foreach ($beatmap as $row_id => $row) {
         if ($row_id > $beatmap_last_row_id) {
             continue;
         }
 
         foreach ($row as $boat_id => $beat) {
-            $beat_offset_y = $margin_top + $row_id * $size_row * $scale_vertical + -1 * $size_sub_beat * $scale_subbeat * $beat['vertical_offset'] * $scale_vertical / $max_vertical_offset;
+            $beat_offset_y = $image_height - $margin_top - $row_id * $size_row * $scale_vertical + -1 * $size_sub_beat * $scale_subbeat * $beat['vertical_offset'] * $scale_vertical / $max_vertical_offset;
             $beat_offset_x = $beat_x_start
                 + $beat_x_width * $scale_horizontal * $beat['column_index'] / $max_column_index;
 
-            if ($beat['beat_type'] !== 0 && $beat['beat_type'] !== 0x0B && $last_beat_type !== 0 && $last_x && $last_y) {
-                $doc->addChild(
-                    (new SVGLine($last_x, $last_y, $beat_offset_x, $beat_offset_y))
-                        ->setStyle('stroke', '#' . $color_slider_slide)
-                        ->setStyle('stroke-width', $size_slider_line . 'px')
-                );
+            $is_slider = $beat['beat_type'] !== 0;
+            $is_slider_start = $is_slider && in_array($beat['beat_type'], $beat_slider_start);
+            $slider_group = $is_slider ? $beat_slider_groups[$beat['beat_type']] : 0;
+            $color = $is_slider ? $color_slider : $color_tap;
+            $note = [
+                'row' => $row_id,
+                'x' => $beat_offset_x,
+                'y' => $beat_offset_y,
+                'size' => $is_slider && !$is_slider_start ? $size_beat * $size_factor_slider : $size_beat,
+                'color' => $color,
+                'beat' => $beat,
+                'type' => $is_slider ? 'slider' : 'tap',
+                'slider_group' => $slider_group,
+            ];
+            $notes[] = $note;
+
+            if ($is_slider_start) {
+                $last_slider_by_group[$slider_group] = $note;
             }
 
-            $color = $beat['beat_type'] === 0 ? $color_tap : $color_slider;
-            $doc->addChild(
-                (new SVGCircle($beat_offset_x, $beat_offset_y, $size_beat))
-                    ->setStyle('fill', '#' . $color)
-            );
+            if ($is_slider && !$is_slider_start && isset($last_slider_by_group[$slider_group])) {
+                $line = [
+                    'note_last' => $last_slider_by_group[$slider_group],
+                    'note_current' => $note,
+                ];
+                $lines[] = $line;
+                $last_slider_by_group[$slider_group] = $note;
+            }
 
             if ($verbose) {
-                $font = new \SVG\Nodes\Structures\SVGFont('openGost', dirname($path_beatmaps) . '/RobotoMono-Regular.ttf');
-                $doc->addChild($font);
                 $doc->addChild(
                     (new \SVG\Nodes\Texts\SVGText(
                         sprintf(
@@ -133,7 +150,21 @@ foreach ($beatmap_files as $beatmap_file) {
         $last_row_id = $row_id;
         $last_x = null;
         $last_y = null;
+    }
 
+    foreach ($lines as $line) {
+        $doc->addChild(
+            (new SVGLine($line['note_last']['x'], $line['note_last']['y'], $line['note_current']['x'], $line['note_current']['y']))
+                ->setStyle('stroke', '#' . $color_slider_slide)
+                ->setStyle('stroke-width', $size_slider_line . 'px')
+        );
+    }
+
+    foreach ($notes as $note) {
+        $doc->addChild(
+            (new SVGCircle($note['x'], $note['y'], $note['size']))
+                ->setStyle('fill', '#' . $note['color'])
+        );
     }
 
     $filename = sprintf(

@@ -36,6 +36,17 @@ $beat_types = [
     0xE9 => [ 'name' => 'Slide #03 Continue', 'render' => '&', ],
 ];
 
+$beat_slider_groups = [
+    0x0B => 1,
+    0x0C => 1,
+    0x15 => 2,
+    0x16 => 2,
+    0xE8 => 3,
+    0xE9 => 3,
+];
+
+$beat_slider_start = [ 0x0B, 0x15, 0xE8 ];
+
 $vertical_offsets = [ // right before the (next) counter
     0x00 => [ 'name' => '00', 'render' => '- --', ],
     0x10 => [ 'name' => '10', 'render' => 'X 10', ],
