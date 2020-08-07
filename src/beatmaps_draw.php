@@ -22,10 +22,11 @@ $scale_vertical = 1.0 * $scale_overall;
 $scale_horizontal = 1.0 * $scale_overall;
 $scale_subbeat = 1.0 * $scale_overall;
 
-$size_row = 300 * $scale_overall;
-$size_beat = 15 * $scale_overall;
-$size_sub_beat = 300 * $scale_overall;
-$size_slider_line = 6 * $scale_overall;
+$size_row_base = 200;
+$size_row = $size_row_base * $scale_overall;
+$size_beat = 20 * $scale_overall;
+$size_sub_beat = $size_row_base * $scale_overall;
+$size_slider_line = 12 * $scale_overall;
 $size_factor_slider = 0.7;
 
 $color_tap = '59e';
@@ -33,8 +34,8 @@ $color_slider = 'ed8';
 $color_slider_slide = 'dc7';
 
 $image_width = 400 * $scale_horizontal;
-$margin_side = 100 * $scale_horizontal;
-$margin_top = 50 * $scale_vertical;
+$margin_side = 50 * $scale_horizontal;
+$margin_top = 100 * $scale_vertical;
 $margin_bottom = 50 * $scale_vertical;
 $beat_x_start = $margin_side;
 $beat_x_end   = $image_width - $margin_side;
@@ -53,6 +54,7 @@ foreach ($beatmap_files as $beatmap_file) {
     echo $songdata['dalcom_beatmap_filename'] . ' [' . $songdata['difficulty'] . ']' . PHP_EOL;
 
     $beatmap_last_row_id = array_key_last($beatmap);
+    $beatmap_secondlast_row_id = array_key_last(array_slice($beatmap, 0, -1));
 
     $used_vertical_offsets = [];
     $used_column_indexes = [];
@@ -91,7 +93,7 @@ foreach ($beatmap_files as $beatmap_file) {
         }
 
         foreach ($row as $boat_id => $beat) {
-            $beat_offset_y = $image_height - $margin_top - $row_id * $size_row * $scale_vertical + -1 * $size_sub_beat * $scale_subbeat * $beat['vertical_offset'] * $scale_vertical / $max_vertical_offset;
+            $beat_offset_y = $image_height + $margin_top - ($row_id + 18) * $size_row * $scale_vertical + -1 * $size_sub_beat * $scale_subbeat * $beat['vertical_offset'] * $scale_vertical / $max_vertical_offset;
             $beat_offset_x = $beat_x_start
                 + $beat_x_width * $scale_horizontal * $beat['column_index'] / $max_column_index;
 

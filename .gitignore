@@ -2,6 +2,7 @@
 /tmp/
 /vendor/
 /config/config.php
+/data/
 /data/beatmaps/
 /data/beatmap-images/
 /data/beatmap-images-*/
