@@ -5,8 +5,10 @@ require_once __DIR__ . '/beatmaps_common.php';
 use Imagine\Image\Box;
 use Imagine\Image\Point;
 use SVG\SVG;
+use SVG\Nodes\SVGGenericNodeType;
 use SVG\Nodes\Shapes\SVGCircle;
 use SVG\Nodes\Shapes\SVGLine;
+use SVG\Nodes\Structures\SVGDefs;
 
 if (!file_exists($path_beatmap_images)) {
     mkdir($path_beatmap_images, 0777, true);
@@ -25,13 +27,17 @@ $scale_subbeat = 1.0 * $scale_overall;
 $size_row_base = 200;
 $size_row = $size_row_base * $scale_overall;
 $size_beat = 20 * $scale_overall;
+$size_factor_beat_inner = 0.7;
+$offset_beat_inner = ($size_beat - $size_beat * $size_factor_beat_inner) / 2;
 $size_sub_beat = $size_row_base * $scale_overall;
 $size_slider_line = 12 * $scale_overall;
-$size_factor_slider = 0.7;
+$size_factor_slider = 0.6;
 
-$color_tap = '59e';
-$color_slider = 'ed8';
-$color_slider_slide = 'dc7';
+$color_tap = '#80b1ff';
+$color_slider = '#ffe770';
+$color_slider_slide = '#dc7';
+$color_node_shadow = '#000000';
+$color_background = '#152b44';
 
 $image_width = 400 * $scale_horizontal;
 $margin_side = 50 * $scale_horizontal;
@@ -74,8 +80,61 @@ foreach ($beatmap_files as $beatmap_file) {
     $image_height = $size_row * $beatmap_last_row_id * $scale_vertical + $margin_top + $margin_bottom;
     $image = new SVG($image_width, $image_height);
     $doc = $image->getDocument();
+    $doc->setStyle('background-color', $color_background);
     $font = new \SVG\Nodes\Structures\SVGFont('openGost', dirname($path_beatmaps) . '/RobotoMono-Regular.ttf');
     $doc->addChild($font);
+
+    $defs = new SVGDefs();
+    $doc->addChild($defs);
+
+    $filterShadow = new SVGGenericNodeType('filter');
+    $filterShadow->setAttribute('id', 'shadow');
+    $defs->addChild($filterShadow);
+    $feDropShadow = new SVGGenericNodeType('feDropShadow');
+    $feDropShadow->setAttribute('dx', '0');
+    $feDropShadow->setAttribute('dy', '0');
+    $feDropShadow->setAttribute('stdDeviation', '1');
+    $feDropShadow->setAttribute('flood-color', $color_node_shadow);
+    $feDropShadow->setAttribute('flood-opacity', '0.5');
+    $filterShadow->addChild($feDropShadow);
+
+    $filterDiffuseLightOuter = new SVGGenericNodeType('filter');
+    $filterDiffuseLightOuter->setAttribute('id', 'diffuseLightOuter');
+    $defs->addChild($filterDiffuseLightOuter);
+    $feDiffuseLightingOuter = new SVGGenericNodeType('feDiffuseLighting');
+    $feDiffuseLightingOuter->setAttribute('in', 'SourceGraphic');
+    $feDiffuseLightingOuter->setAttribute('result', 'light');
+    $feDiffuseLightingOuter->setAttribute('lighting-color', 'white');
+    $filterDiffuseLightOuter->addChild($feDiffuseLightingOuter);
+    $fePointLightOuter = new SVGGenericNodeType('fePointLight');
+    $fePointLightOuter->setAttribute('x', '150');
+    $fePointLightOuter->setAttribute('y', '60');
+    $fePointLightOuter->setAttribute('z', '20');
+    $filterDiffuseLightOuter->addChild($fePointLightOuter);
+    $feCompositeOuter = new SVGGenericNodeType('feComposite');
+    $feCompositeOuter->setAttribute('in', 'SourceGraphic');
+    $feCompositeOuter->setAttribute('in2', 'light');
+    $feCompositeOuter->setAttribute('operator', 'arithmetic');
+    $feCompositeOuter->setAttribute('k1', '1');
+    $feCompositeOuter->setAttribute('k2', '0');
+    $feCompositeOuter->setAttribute('k3', '0');
+    $feCompositeOuter->setAttribute('k4', '0');
+    $filterDiffuseLightOuter->addChild($feCompositeOuter);
+
+    $filterDiffuseLightInner = new SVGGenericNodeType('filter');
+    $filterDiffuseLightInner->setAttribute('id', 'diffuseLightInner');
+    $defs->addChild($filterDiffuseLightInner);
+    $feDiffuseLightingInner = new SVGGenericNodeType('feDiffuseLighting');
+    $feDiffuseLightingInner->setAttribute('in', 'SourceGraphic');
+    $feDiffuseLightingInner->setAttribute('result', 'light');
+    $feDiffuseLightingInner->setAttribute('lighting-color', 'white');
+    $filterDiffuseLightInner->addChild($feDiffuseLightingInner);
+    $fePointLightInner = new SVGGenericNodeType('fePointLight');
+    $fePointLightInner->setAttribute('x', '-150');
+    $fePointLightInner->setAttribute('y', '60');
+    $fePointLightInner->setAttribute('z', '20');
+    $filterDiffuseLightInner->addChild($fePointLightInner);
+    $filterDiffuseLightInner->addChild($feCompositeOuter);
 
     // Vars to draw sliders
     $last_row_id = null;
@@ -110,6 +169,8 @@ foreach ($beatmap_files as $beatmap_file) {
                 'beat' => $beat,
                 'type' => $is_slider ? 'slider' : 'tap',
                 'slider_group' => $slider_group,
+                'slider_start' => $is_slider_start,
+                'slider_continue' => $is_slider && !$is_slider_start,
             ];
             $notes[] = $note;
 
@@ -157,16 +218,29 @@ foreach ($beatmap_files as $beatmap_file) {
     foreach ($lines as $line) {
         $doc->addChild(
             (new SVGLine($line['note_last']['x'], $line['note_last']['y'], $line['note_current']['x'], $line['note_current']['y']))
-                ->setStyle('stroke', '#' . $color_slider_slide)
+                ->setStyle('stroke', $color_slider_slide)
                 ->setStyle('stroke-width', $size_slider_line . 'px')
         );
     }
 
-    foreach ($notes as $note) {
-        $doc->addChild(
-            (new SVGCircle($note['x'], $note['y'], $note['size']))
-                ->setStyle('fill', '#' . $note['color'])
-        );
+    foreach (array_reverse($notes) as $note) {
+        $circleOuter = (new SVGCircle($note['x'], $note['y'], $note['size']))
+            ->setStyle('fill', $note['color'])
+            ->setStyle('filter', 'url(#shadow), url(#diffuseLightOuter)');
+        $doc->addChild($circleOuter);
+
+        if ($note['slider_continue']) {
+            $circleInner = (new SVGCircle(
+                $note['x'] + $offset_beat_inner,
+                $note['y'] + $offset_beat_inner,
+                $note['size'] * $size_factor_beat_inner,
+            ));
+            $circleInner
+                ->setStyle('fill', $note['color'])
+                ->setStyle('filter', 'url(#diffuseLightInner)')
+            ;
+            $doc->addChild($circleInner);
+        }
     }
 
     $filename = sprintf(
