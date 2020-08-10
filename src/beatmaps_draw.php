@@ -14,7 +14,7 @@ if (!file_exists($path_beatmap_images)) {
     mkdir($path_beatmap_images, 0777, true);
 }
 
-$beatmap_files = array_diff(scandir($path_beatmaps), array('.', '..'));
+$beatmap_files = dirToArray($path_beatmaps_output, $path_beatmaps_output);
 natsort($beatmap_files);
 
 $verbose = false;
@@ -48,13 +48,13 @@ $beat_x_end   = $image_width - $margin_side;
 $beat_x_width = $beat_x_end - $beat_x_start;
 
 foreach ($beatmap_files as $beatmap_file) {
-    if (!is_file($path_beatmaps . DS . $beatmap_file) || !preg_match('/\\.seq\\.json$/', $beatmap_file)) {
+    if (!is_file($path_beatmaps_output . DS . $beatmap_file) || !preg_match('/\\.seq\\.json$/', $beatmap_file)) {
         continue;
     }
 
     echo sprintf('Processing file %s - ', $beatmap_file);
 
-    $songdata = json_decode(file_get_contents($path_beatmaps . DS . $beatmap_file), true);
+    $songdata = json_decode(file_get_contents($path_beatmaps_output . DS . $beatmap_file), true);
     $beatmap = $songdata['map'];
 
     echo $songdata['dalcom_beatmap_filename'] . ' [' . $songdata['difficulty'] . ']' . PHP_EOL;
@@ -162,6 +162,7 @@ foreach ($beatmap_files as $beatmap_file) {
             $color = $is_slider ? $color_slider : $color_tap;
             $note = [
                 'row' => $row_id,
+                'note' => $beat['note_id'],
                 'x' => $beat_offset_x,
                 'y' => $beat_offset_y,
                 'size' => $is_slider && !$is_slider_start ? $size_beat * $size_factor_slider : $size_beat,
@@ -233,7 +234,7 @@ foreach ($beatmap_files as $beatmap_file) {
             $circleInner = (new SVGCircle(
                 $note['x'] + $offset_beat_inner,
                 $note['y'] + $offset_beat_inner,
-                $note['size'] * $size_factor_beat_inner,
+                $note['size'] * $size_factor_beat_inner
             ));
             $circleInner
                 ->setStyle('fill', $note['color'])
@@ -246,11 +247,14 @@ foreach ($beatmap_files as $beatmap_file) {
     $filename = sprintf(
         '%s%s%s - %s - %s.svg',
         $path_beatmap_images,
-        DS,
+        str_replace('//', '/', DS . dirname($beatmap_file) . DS),
         basename($songdata['dalcom_beatmap_filename'], '.json'),
         $songdata['dalcom_song_filename'],
         $songdata['difficulty']
     );
+    if (!is_dir(dirname($filename))) {
+        mkdir(dirname($filename), 0777, true);
+    }
     file_put_contents($filename, $image);
     echo sprintf('Wrote "%s"', $filename) . PHP_EOL;
 }

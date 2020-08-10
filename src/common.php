@@ -128,7 +128,8 @@ $difficulty_map = [
 $config_file = dirname(__DIR__) . '/config/config.php';
 $path_data = dirname(__DIR__) . '/input';
 $path_tmp = dirname(__DIR__) . '/tmp';
-$path_beatmaps = dirname(__DIR__) . '/data/beatmaps';
+$path_beatmaps = dirname(__DIR__) . '/data/songs';
+$path_beatmaps_output = dirname(__DIR__) . '/data/songs-output';
 $path_beatmap_images = dirname(__DIR__) . '/data/beatmap-images';
 $path_results = $path_tmp . DS . 'results';
 
@@ -172,6 +173,35 @@ function filter_results_boundary(array $results, $tl_x, $tl_y, $br_x, $br_y) {
 
 function number_remove_format(string $input) {
     return preg_replace('/\D/g', '', $input);
+}
+
+function dirToArray($dir, $prefix = '')
+{
+    $result = array();
+    $dir = rtrim($dir, DS) . DS;
+
+    $cdir = scandir($dir);
+    foreach ($cdir as $key => $value) {
+       if (!in_array($value,array('.','..'))) {
+          if (is_dir($dir . $value)) {
+             $result = array_merge($result, dirToArray($dir . $value, $prefix));
+          } else {
+             $result[] = ltrim(str_replace($prefix, '', $dir), DS) . $value;
+          }
+       }
+    }
+    return $result;
+ }
+
+/** @copyright https://www.php.net/manual/en/function.array-key-last.php#123016 */
+if (! function_exists("array_key_last")) {
+    function array_key_last($array) {
+        if (!is_array($array) || empty($array)) {
+            return NULL;
+        }
+
+        return array_keys($array)[count($array)-1];
+    }
 }
 
 /**

@@ -5,11 +5,8 @@ require_once __DIR__ . '/beatmaps_common.php';
 $config = include $config_file;
 $dbconfig = $config['db'];
 
-$beatmap_files = array_diff(scandir($path_beatmaps), array('.', '..'));
+$beatmap_files = dirToArray($path_beatmaps, $path_beatmaps);
 natsort($beatmap_files);
-
-
-// $beatmap_files = ['1001_4.seq'];
 
 $verbose = false;
 
@@ -29,7 +26,7 @@ foreach ($beatmap_files as $beatmap_file) {
 
     echo sprintf("Scanning file '%s'...   \t", $beatmap_file);
     $filename_matches = [];
-    preg_match('/^(?P<song_id>\d+)_(?P<difficulty_id>\d{1,2})\.seq$/', $beatmap_file, $filename_matches);
+    preg_match('/^(?P<song_id>\d+)_(?P<difficulty_id>\d{1,2})\.seq$/', basename($beatmap_file), $filename_matches);
     list('song_id' => $song_id, 'difficulty_id' => $difficulty_id) = $filename_matches;
     $difficulty = $difficulty_map[$difficulty_id];
 
@@ -160,8 +157,23 @@ foreach ($beatmap_files as $beatmap_file) {
         }
     }
 
+    $base_id = sprintf(
+        '%s%s%s',
+        dirname($beatmap_file),
+        '/',
+        explode('_', basename($beatmap_file, '.seq'))[0]
+    );
+    $audio_filepath = $path_beatmaps . DS . $base_id . '.a.wav';
+    $time = exec("ffprobe -i " . escapeshellarg($audio_filepath) . " 2>&1 | grep 'Duration' | cut -d ' ' -f 4 | sed s/,//");
+    list($hms, $milli) = explode('.', $time);
+    list($hours, $minutes, $seconds) = explode(':', $hms);
+    $total_seconds = ($hours * 3600) + ($minutes * 60) + $seconds;
+
     $count_notes_nocombo = $count_taps + $count_sliders;
     $songinfo = ($songinfos[$song_id] ?? []) + [
+        'length_display' => sprintf('%02s:%02s.%02s', $minutes, $seconds, $milli),
+        'length_seconds' => sprintf('%s.%s', $total_seconds, $milli),
+        'length_nominal' => sprintf('%s.%s', $total_seconds, $milli) / 60,
         'dalcom_song_id' => $song_id,
         'dalcom_song_filename' => $song_file,
         'date_processed' => date("Y-m-d H:i:sP"),
@@ -169,8 +181,10 @@ foreach ($beatmap_files as $beatmap_file) {
     $songinfo_bydifficulty = [
         'difficulty' => $difficulty,
         'difficulty_id' => $difficulty_id,
-        'dalcom_beatmap_filename' => $beatmap_file,
+        'dalcom_beatmap_filename' => str_replace('\\', '/', $beatmap_file),
         'beatmap_fingerprint' => hash_file('sha256', $path_beatmaps . DS . $beatmap_file),
+        'index_beat_min' => min(array_keys($rows)),
+        'index_beat_max' => max(array_keys($rows)),
         'count_notes_total' => $count_notes_total,
         'count_notes_nocombo' => $count_notes_nocombo,
         'count_taps' => $count_taps,
@@ -183,12 +197,17 @@ foreach ($beatmap_files as $beatmap_file) {
     $songinfo_bydifficulties = $songinfo['bydifficulties'] ?? [];
     $songinfo_bydifficulties[$difficulty] = $songinfo_bydifficulty;
     $songinfo['bydifficulties'] = $songinfo_bydifficulties;
-    $songinfos[$song_id] = $songinfo;
+    $songinfos[$base_id] = $songinfo;
 
     $beatmap = $songinfo + $songinfo_bydifficulty + [
         'map' => $rows,
     ];
-    file_put_contents($path_beatmaps . DS . $beatmap_file . '.json', json_encode($beatmap, JSON_PRETTY_PRINT));
+
+    $output_dir = dirname($path_beatmaps_output . DS . $beatmap_file);
+    if (!is_dir($output_dir)) {
+        mkdir($output_dir, 0777, true);
+    }
+    file_put_contents($path_beatmaps_output . DS . $beatmap_file . '.json', json_encode($beatmap, JSON_PRETTY_PRINT));
 
     $used_column_index = array_unique($used_column_index);
     $used_beat_type = array_unique($used_beat_type);
@@ -265,7 +284,7 @@ $songinfos_data = [
     'songinfos' => $songinfos,
     'guid' => guid_generate(),
 ];
-file_put_contents(sprintf($path_beatmaps . DS . 'songinfos-%s-%s.json', date("Y-m-d_H-i-s"), $songinfos_data['guid']), json_encode($songinfos_data, JSON_PRETTY_PRINT));
+file_put_contents(sprintf($path_beatmaps_output . DS . 'songinfos-%s-%s.json', date("Y-m-d_H-i-s"), $songinfos_data['guid']), json_encode($songinfos_data, JSON_PRETTY_PRINT));
 
 foreach (array_unique($missing_vertical_offset) as $vertical_offset) {
     // echo sprintf('Please add %s / 0x%02.s / 0b%s to vertical_offset.', $vertical_offset, dechex($vertical_offset), decbin($vertical_offset)) . PHP_EOL;
