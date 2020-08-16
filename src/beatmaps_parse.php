@@ -170,7 +170,7 @@ foreach ($beatmap_files as $beatmap_file) {
     $total_seconds = ($hours * 3600) + ($minutes * 60) + $seconds;
 
     $count_notes_nocombo = $count_taps + $count_sliders;
-    $songinfo = ($songinfos[$song_id] ?? []) + [
+    $songinfo = ($songinfos[$base_id] ?? []) + [
         'length_display' => sprintf('%02s:%02s.%02s', $minutes, $seconds, $milli),
         'length_seconds' => sprintf('%s.%s', $total_seconds, $milli),
         'length_nominal' => sprintf('%s.%s', $total_seconds, $milli) / 60,
