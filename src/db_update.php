@@ -40,13 +40,20 @@ $guid_tables = [
     'log_diamonds' => [ 'date_column' => 'date' ],
     'log_diamonds_ads' => [ 'date_column' => 'date' ],
     'log_drops' => [ 'date_column' => 'date' ],
+
+    'oauth_clients' => [ 'date_column' => false ],
+    'oauth_codes' => [ 'date_column' => 'accessTokenExpiration' ],
+    'oauth_tokens' => [ 'date_column' => 'accessTokenExpiration' ],
+
     'song_clear_cards' => [ 'date_column' => false ],
     'song_clears_v2' => [ 'date_column' => 'date' ],
-    'songs' => [ 'date_column' => false ],
+    'songs' => [ 'date_column' => 'dateReleasedGame' ],
+    'song_world_records' => [ 'date_column' => 'date_recorded' ],
     'superstar_games' => [ 'date_column' => false ],
-    'themes' => [ 'date_column' => false ],
+    'themes' => [ 'date_column' => 'dateReleased' ],
     'user_credentials' => [ 'date_column' => 'created' ],
     'users' => [ 'date_column' => 'created' ],
+    'world_record_seasons' => [ 'date_column' => 'dateStart' ],
 ];
 
 foreach ($guid_tables as $table_name => $table_options) {
