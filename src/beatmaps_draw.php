@@ -244,6 +244,7 @@ foreach ($beatmap_files as $beatmap_file) {
         }
     }
 
+    // Regular named svg file
     $filename = sprintf(
         '%s%s%s - %s - %s.svg',
         $path_beatmap_images,
@@ -256,6 +257,19 @@ foreach ($beatmap_files as $beatmap_file) {
         mkdir(dirname($filename), 0777, true);
     }
     file_put_contents($filename, $image);
+
+    // Machine named file for web assets
+    $filename = sprintf(
+        '%s-assets%s%s.svg',
+        $path_beatmap_images,
+        str_replace('//', '/', DS . dirname($beatmap_file) . DS),
+        basename(basename($songdata['dalcom_beatmap_filename'], '.json'), '.seq')
+    );
+    if (!is_dir(dirname($filename))) {
+        mkdir(dirname($filename), 0777, true);
+    }
+    file_put_contents($filename, $image);
+
     echo sprintf('Wrote "%s"', $filename) . PHP_EOL;
 }
 
