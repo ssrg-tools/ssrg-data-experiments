@@ -250,7 +250,7 @@ foreach ($beatmap_files as $beatmap_file) {
         $path_beatmap_images,
         str_replace('//', '/', DS . dirname($beatmap_file) . DS),
         basename($songdata['dalcom_beatmap_filename'], '.json'),
-        $songdata['dalcom_song_filename'],
+        basename($songdata['dalcom_song_filename']),
         $songdata['difficulty']
     );
     if (!is_dir(dirname($filename))) {
