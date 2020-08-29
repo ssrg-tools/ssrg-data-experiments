@@ -19,6 +19,20 @@ $beat_type_by_difficulty = [];
 
 $songinfos = [];
 
+function find_song_filename_start($contents, $filepath) {
+    $ogg_pos = strpos($contents, '.ogg');
+
+    if ($ogg_pos === false) {
+        throw new RuntimeException('Could not find filename for ' . $filepath);
+    }
+
+    $current_pos = $ogg_pos;
+    do {
+        $current_pos--;
+    } while ($contents[$current_pos] !== "\0");
+    return $current_pos + 1;
+}
+
 foreach ($beatmap_files as $beatmap_file) {
     if (!is_file($path_beatmaps . DS . $beatmap_file) || !preg_match('/\\.seq$/', $beatmap_file)) {
         continue;
@@ -38,7 +52,7 @@ foreach ($beatmap_files as $beatmap_file) {
     $contents = file_get_contents($path_beatmaps . DS . $beatmap_file);
     $contents_length = strlen($contents);
 
-    $song_filename_start = strpos($contents, 'GF_') ?: stripos($contents, 'GFriend_'); // nice little hack :D
+    $song_filename_start = find_song_filename_start($contents, $beatmap_file); // nice little hack :D
     if ($song_filename_start === false) {
         echo sprintf('Warning: Could not find song filename in "%s".', $beatmap_file) . PHP_EOL;
         continue;
