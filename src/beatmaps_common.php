@@ -30,6 +30,7 @@ $beat_types = [
     0x00 => [ 'name' => 'Tap', 'render' => 'X', ],
     0x0B => [ 'name' => 'Slide #01 Start', 'render' => '<', ],
     0x0C => [ 'name' => 'Slide #01 Continue', 'render' => '>', ],
+    0x03 => [ 'name' => 'Slide #01 Continue 2', 'render' => '>', ],
     0x15 => [ 'name' => 'Slide #02 Start', 'render' => '#', ],
     0x16 => [ 'name' => 'Slide #02 Continue', 'render' => '?', ],
     0xE8 => [ 'name' => 'Slide #03 Start', 'render' => '%', ],
@@ -39,6 +40,7 @@ $beat_types = [
 $beat_slider_groups = [
     0x0B => 1,
     0x0C => 1,
+    0x03 => 1, // See Starship / YSW - Walk.ogg
     0x15 => 2,
     0x16 => 2,
     0xE8 => 3,
