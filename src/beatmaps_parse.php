@@ -99,13 +99,6 @@ foreach ($beatmap_files as $beatmap_file) {
         if (!isset($beat_types[$beat_type])) {
             echo sprintf('Please add %s / 0x%02.s / 0b%s to beat_type.', $beat_type, dechex($beat_type), decbin($beat_type)) . PHP_EOL;
         }
-        if (!isset($vertical_offsets[$vertical_offset])) {
-            $missing_vertical_offset[] = $vertical_offset;
-            $current_offset = $current_offset + $line_length;
-            continue;
-            // echo sprintf('Please add %s / 0x%02.s / 0b%s to vertical_offset.', $vertical_offset, dechex($vertical_offset), decbin($vertical_offset)) . PHP_EOL;
-        }
-
         if ($verbose) {
             echo sprintf(
                 '  counter: %04.s %s [ %03s ] [ %s <%8s> ] [ %s <%8s> ]',
