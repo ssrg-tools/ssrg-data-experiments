@@ -24,6 +24,11 @@ foreach ($beatmap_files as $beatmap_file) {
         continue;
     }
 
+    if ($beatmap_file === 'sm\10001_13.seq') {
+        echo 'Skipping Hitchhiker - 11 - file is broken.' . PHP_EOL . PHP_EOL . PHP_EOL;
+        continue;
+    }
+
     echo sprintf("Scanning file '%s'...   \t", $beatmap_file);
     $filename_matches = [];
     preg_match('/^(?P<song_id>\d+)_(?P<difficulty_id>\d{1,2})\.seq$/', basename($beatmap_file), $filename_matches);
