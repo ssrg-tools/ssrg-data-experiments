@@ -19,18 +19,13 @@ natsort($beatmap_files);
 
 $verbose = false;
 
-$scale_overall = 1.0;
-$scale_vertical = 1.0 * $scale_overall;
-$scale_horizontal = 1.0 * $scale_overall;
-$scale_subbeat = 1.0 * $scale_overall;
-
 $size_row_base = 200;
-$size_row = $size_row_base * $scale_overall;
-$size_beat = 20 * $scale_overall;
+$size_row = $size_row_base;
+$size_beat = 20;
 $size_factor_beat_inner = 0.7;
 $offset_beat_inner = ($size_beat - $size_beat * $size_factor_beat_inner) / 2;
-$size_sub_beat = $size_row_base * $scale_overall;
-$size_slider_line = 12 * $scale_overall;
+$size_sub_beat = $size_row_base;
+$size_slider_line = 12;
 $size_factor_slider = 0.6;
 
 $color_tap = '#80b1ff';
@@ -39,10 +34,10 @@ $color_slider_slide = '#dc7';
 $color_node_shadow = '#000000';
 $color_background = '#152b44';
 
-$image_width = 400 * $scale_horizontal;
-$margin_side = 50 * $scale_horizontal;
-$margin_top = 100 * $scale_vertical;
-$margin_bottom = 50 * $scale_vertical;
+$image_width = 400;
+$margin_side = 50;
+$margin_top = 100;
+$margin_bottom = 50;
 $beat_x_start = $margin_side;
 $beat_x_end   = $image_width - $margin_side;
 $beat_x_width = $beat_x_end - $beat_x_start;
@@ -77,7 +72,7 @@ foreach ($beatmap_files as $beatmap_file) {
     $min_vertical_offset = min(...$used_vertical_offsets);
     $max_vertical_offset = max(...$used_vertical_offsets);
 
-    $image_height = $size_row * $beatmap_last_row_id * $scale_vertical + $margin_top + $margin_bottom;
+    $image_height = $size_row * $beatmap_last_row_id + $margin_top + $margin_bottom;
     $image = new SVG($image_width, $image_height);
     $doc = $image->getDocument();
     $doc->setStyle('background-color', $color_background);
@@ -152,9 +147,9 @@ foreach ($beatmap_files as $beatmap_file) {
         }
 
         foreach ($row as $boat_id => $beat) {
-            $beat_offset_y = $image_height + $margin_top - ($row_id + 18) * $size_row * $scale_vertical + -1 * $size_sub_beat * $scale_subbeat * $beat['vertical_offset'] * $scale_vertical / $max_vertical_offset;
+            $beat_offset_y = $image_height + $margin_top - ($row_id + 18) * $size_row + -1 * $size_sub_beat * $beat['vertical_offset'] / $max_vertical_offset;
             $beat_offset_x = $beat_x_start
-                + $beat_x_width * $scale_horizontal * $beat['column_index'] / $max_column_index;
+                + $beat_x_width * $beat['column_index'] / $max_column_index;
 
             $is_slider = $beat['beat_type'] !== 0;
             $is_slider_start = $is_slider && in_array($beat['beat_type'], $beat_slider_start);
